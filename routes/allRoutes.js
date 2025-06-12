@@ -14,9 +14,17 @@ router.get('/', async (req, res) => {
 });
 
 // get a single record by id
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
     const id = req.params.id;
-    res.send(`Record with ID: ${id}`);
+    try {
+        const record = await schema.findById(id);
+        if (!record) {
+            return res.status(404).send('Record not found');
+        }
+        res.json(record);
+    } catch (error) {
+        res.status(500).send('Error retrieving record: ' + error.message);
+    }
 });
 // create a new record
 router.post('/', async (req, res) => {
@@ -29,15 +37,31 @@ router.post('/', async (req, res) => {
     }
 });
 // update a record by id
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
     const id = req.params.id;
-    const updatedRecord = req.body;
-    res.send(`Record with ID: ${id} updated to: ${JSON.stringify(updatedRecord)}`);
+    const updatedData = req.body;
+    try {
+        const record = await schema.findByIdAndUpdate(id, updatedData, { new: true });
+        if (!record) {
+            return res.status(404).send('Record not found');
+        }
+        res.json(record);
+    } catch (error) {
+        res.status(400).send('Error updating record: ' + error.message);
+    }
 });
 // delete a record by id
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
     const id = req.params.id;
-    res.send(`Record with ID: ${id} deleted`);
+    try {
+        const record = await schema.findByIdAndDelete(id);
+        if (!record) {
+            return res.status(404).send('Record not found');
+        }
+        res.json({ message: 'Record deleted successfully' });
+    } catch (error) {
+        res.status(500).send('Error deleting record: ' + error.message);
+    }
 });
 
 module.exports = router;
